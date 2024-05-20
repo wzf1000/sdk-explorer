@@ -5,14 +5,11 @@ const { fromIni } = require('@aws-sdk/credential-provider-ini');
 const codeDeployClient = new CodeDeployClient({ region: 'us-east-1'});
 const lambdaClient = new LambdaClient({ region: 'us-east-1'});
 
-const aliasName = "live"; // Alias name you want to use
-const functionName = "us-east-1-dev-product-dev-createCityProduct-lmb";
-
-const deployLambdaAliasGradually = async () => {
+async function deployLambdaAliasGradually (functionName, aliasName, applicationName, deploymentGroupName) {
   try {
     const deploymentParams = {
-      applicationName: 'ProductStatelessStack-CreateCityProductLambdaDeploymentGroupApplication0FB9F04C-b3hFMrnKhLyK', // Replace with your application name
-      deploymentGroupName: 'ProductStatelessStack-CreateCityProductLambdaDeploymentGroupA09E315F-4BQVALLRRJG7', // Replace with your deployment group name
+      applicationName: applicationName, // Replace with your application name
+      deploymentGroupName: deploymentGroupName, // Replace with your deployment group name
       revision: {
         revisionType: "AppSpecContent",
         appSpecContent: {
@@ -25,8 +22,8 @@ const deployLambdaAliasGradually = async () => {
                             "Properties": {
                                 "Name": functionName,
                                 "Alias": aliasName,
-                                "CurrentVersion": "3",
-                                "TargetVersion": "2"
+                                "CurrentVersion": "5",
+                                "TargetVersion": "4"
                             }
                         }
                     }
@@ -47,4 +44,9 @@ const deployLambdaAliasGradually = async () => {
 };
 
 // Call the function to initiate the deployment
-deployLambdaAliasGradually();
+const functionName = "us-east-1-dev-product-dev-getLambdaVersion-lmb";
+const aliasName = "live"; // Alias name you want to use
+const applicationName = "ProductStatelessStack-GetLambdaVersionLambdaDeploymentGroupApplicationC594A2F5-OyClvGM3GFf7"; // Replace with your actual application name
+const deploymentGroupName = "ProductStatelessStack-GetLambdaVersionLambdaDeploymentGroupE7506443-1QTEVHAFGJ6T3";
+
+deployLambdaAliasGradually(functionName, aliasName, applicationName, deploymentGroupName);

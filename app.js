@@ -1,4 +1,4 @@
-const { LambdaClient, GetFunctionCommand, ListVersionsByFunctionCommand, ListAliasesCommand} = require("@aws-sdk/client-lambda")
+const { LambdaClient, GetFunctionCommand, GetAliasCommand, ListVersionsByFunctionCommand, ListAliasesCommand, GetFunctionConfigurationCommand } = require("@aws-sdk/client-lambda")
 
 const lambdaClient = new LambdaClient({ region: 'us-east-1' });
 
@@ -63,15 +63,16 @@ async function getLambdaVersionAndAliasInfo(functionName) {
 }
 
 // Usage example
-const functionName = 'us-east-1-dev-product-dev-createCityProduct-lmb';
-getLambdaVersionAndAliasInfo(functionName)
-    .then(({ versions, aliases }) => {
-        console.log("Lambda version information:", versions);
-        console.log("Lambda alias information:", aliases);
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
+const functionName = 'us-east-1-dev-product-dev-getLambdaVersion-lmb';
+const aliasName = 'live';
+// getLambdaVersionAndAliasInfo(functionName)
+//     .then(({ versions, aliases }) => {
+//         console.log("Lambda version information:", versions);
+//         console.log("Lambda alias information:", aliases);
+//     })
+//     .catch(error => {
+//         console.error("Error:", error);
+//     });
 
 
 // getLambdaFunctionInfo(functionName)
@@ -83,36 +84,39 @@ getLambdaVersionAndAliasInfo(functionName)
 //     });
 
 
-// async function getLiveTrafficPercentage(lambdaFunctionName) {
-//     // Initialize the Lambda client
-//     const lambda = new AWS.Lambda();
+async function getTrafficPercentage(functionName, aliasName) {
+  try {
+    // Create the command with the function name and alias name
+    const command = new GetAliasCommand({ FunctionName: functionName, Name: aliasName });
 
-//     try {
-//         // Get the function configuration
-//         const functionConfig = await lambda.getFunctionConfiguration({ FunctionName: lambdaFunctionName }).promise();
-        
-//         // Extract the alias ARN from the function configuration
-//         const aliasArn = functionConfig.FunctionArn;
-        
-//         // Get the alias traffic configuration
-//         const aliasTrafficConfig = await lambda.getAlias({ FunctionName: lambdaFunctionName, Name: 'live' }).promise();
-        
-//         // Extract the percentage of live traffic
-//         const liveTrafficPercentage = aliasTrafficConfig.RoutingConfig.AdditionalVersionWeights['0'] || 0.0;
-        
-//         return liveTrafficPercentage;
-//     } catch (error) {
-//         console.error('Error retrieving live traffic percentage:', error);
-//         throw error;
-//     }
-// }
+    // Send the command to AWS Lambda
+    const response = await lambdaClient.send(command);
 
-// // Usage example
-// const functionName = 'us-east-1-dev-product-dev-createCityProduct-lmb';
-// getLiveTrafficPercentage(functionName)
-//     .then(liveTrafficPercentage => {
-//         console.log(`Live traffic percentage for '${functionName}': ${liveTrafficPercentage}%`);
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//     });
+    console.log(JSON.stringify(response));
+    
+    // Check if routing configuration exists and calculate the traffic percentage
+    if (response.RoutingConfig && response.RoutingConfig.AdditionalVersionWeights) {
+      let totalWeight = 0;
+      for (const version in response.RoutingConfig.AdditionalVersionWeights) {
+        totalWeight += response.RoutingConfig.AdditionalVersionWeights[version];
+      }
+      const primaryWeight = 1 - totalWeight;
+      console.log(`Primary version traffic percentage: ${primaryWeight * 100}%`);
+      for (const version in response.RoutingConfig.AdditionalVersionWeights) {
+        console.log(`Version ${version} traffic percentage: ${response.RoutingConfig.AdditionalVersionWeights[version] * 100}%`);
+      }
+    } else {
+      console.log("No routing configuration found. All traffic is going to the primary version.");
+    }
+  } catch (error) {
+    console.error("Error retrieving alias information:", error);
+  }
+}
+
+getTrafficPercentage(functionName, aliasName)
+    .then(liveTrafficPercentage => {
+        console.log(`Live traffic percentage for '${functionName}': ${liveTrafficPercentage}%`);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
