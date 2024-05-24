@@ -1,4 +1,4 @@
-const { LambdaClient, GetFunctionCommand, GetAliasCommand, ListVersionsByFunctionCommand, ListAliasesCommand, GetFunctionConfigurationCommand } = require("@aws-sdk/client-lambda")
+const { LambdaClient, GetFunctionCommand, GetAliasCommand, ListVersionsByFunctionCommand, ListAliasesCommand } = require("@aws-sdk/client-lambda")
 
 const lambdaClient = new LambdaClient({ region: 'us-east-1' });
 
@@ -93,7 +93,7 @@ async function getTrafficPercentage(functionName, aliasName) {
     const response = await lambdaClient.send(command);
 
     console.log(JSON.stringify(response));
-    
+
     // Check if routing configuration exists and calculate the traffic percentage
     if (response.RoutingConfig && response.RoutingConfig.AdditionalVersionWeights) {
       let totalWeight = 0;
