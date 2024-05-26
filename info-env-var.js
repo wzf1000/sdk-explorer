@@ -2,9 +2,6 @@ const { LambdaClient, ListVersionsByFunctionCommand, ListAliasesCommand, GetAlia
 
 const lambdaClient = new LambdaClient({ region: 'us-east-1'});
 
-const functionName = 'us-east-1-dev-product-dev-getLambdaVersion-lmb';
-const aliasName = 'live';
-
 async function getVersionAndCommitId(functionName) {
     try {
         let versionList = [];
@@ -71,6 +68,9 @@ async function getInfo(functionName, aliasName) {
     console.error("Error retrieving alias information:", error);
   }
 }
+
+const functionName = 'us-east-1-dev-product-dev-getLambdaVersion-lmb';
+const aliasName = 'live';
 
 getInfo(functionName, aliasName).then(info => {
     console.log(JSON.stringify(info));
