@@ -4,15 +4,22 @@ const { LambdaClient, UpdateAliasCommand } = require("@aws-sdk/client-lambda");
 const client = new LambdaClient({ region: "us-east-1" });
 
 const aliasName = "live"; // Alias name you want to use
-const functionName = "us-east-1-dev-product-dev-createCityProduct-lmb";
+const functionName = "us-east-1-dev-product-dev-getLambdaVersion-lmb";
 
 const updateAlias = async () => {
     const params = {
         FunctionName: functionName, // Replace with your Lambda function name
         Name: aliasName, // Replace with your alias name
-        FunctionVersion: "3", // Replace with the version you want to point the alias to
+        FunctionVersion: "6", // Replace with the version you want to point the alias to
         // Optionally, you can provide a description
-        Description: "Updated alias to point to version 2"
+        //Description: "Updated alias to point to version 2"
+
+        // Additional weight
+        RoutingConfig: {
+            AdditionalVersionWeights: {
+            // "4": 0, // Replace "2" with your version number and set the desired weight
+            },
+        },
     };
 
     const command = new UpdateAliasCommand(params);
